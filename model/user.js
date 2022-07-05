@@ -1,9 +1,20 @@
-const mongoose = require('mongoose');
+// import { Schema, model } from 'mongoose';
+import pkg from 'mongoose';
+const { Schema, model } = pkg;
+import jwt from 'jsonwebtoken'
+import dotenv from 'dotenv';
+import role from './role';
+import cart from './cart'
 
-const schema = mongoose.Schema;
+dotenv.config();
+const schema = Schema;
 
 const userSchema = new schema({
-    name: {
+    firstName: {
+        type: String,
+        required: true,
+    },
+    lastName: {
         type: String,
         required: true,
     },
@@ -19,6 +30,22 @@ const userSchema = new schema({
         type: String,
         required: true,
     },
+    roleId: {
+        type: pkg.Types.ObjectId,
+        ref : 'role',
+        required: false
+    },
+    cartId: {
+        type: [pkg.Types.ObjectId],
+        ref: 'cart',
+        required: false
+    }
 });
 
-module.exports = mongoose.model("User", userSchema);
+userSchema.methods.generateJsonWebToken = function(){
+    return jwt.sign({id:this._id},process.env.SECRET_KEY,{
+        expiresIn:'5m',
+    });
+}
+
+export default model("User", userSchema);

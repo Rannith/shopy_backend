@@ -1,23 +1,65 @@
-const User = require('../model/user');
-const status = require('../constants/status-code')
+// const User = require('../model/user');
+// const status = require('../constants/status-code')
+import User from '../model/user';
+import * as status from '../constants/status-code'
+import BaseController from './base-controller';
+import bcrypt from 'bcrypt'
+import sendToken from '../utils/jwt-token';
+
+const baseController = new BaseController() // change to abstract cls
 
 class UserController {
 
-    static getAllUser = async (req, res, next) => {
+    registerUser = async (req, res) => {
         try {
-            let users = await User.find();
-            if (users.length < 1)
-                throw "No users found"
-            return res.status(status.SUCCESS).json({ users })
-        } catch (err) {
+            const { firstName, lastName, email, phone, password, role } = req.body;
+            if (await User.findOne({ email: email })) {
+                throw "This mail id has already been registered"
+            }
+            const hashedPassword = await bcrypt.hash(password, 10)
+            console.log(hashedPassword);
+            let roleId = await baseController.getRoleId(role, res);
+            let user = new User({
+                firstName,
+                lastName,
+                email,
+                phone,
+                password: hashedPassword,
+                roleId
+            });
+            await user.save();
+            const message = "User Registered Successfully"
+            sendToken(user, status.CREATED, res, message)
+        }
+        catch (err) {
+            return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
+        }
+    }
+
+    loginUser = async (req, res, next) => {
+        try {
+            const { email, password } = req.body;
+            let user = await User.findOne({ email: email })
+            if (user === null)                               // chg to !user
+                throw "No account exist with this mail id"
+            if (!(bcrypt.compareSync(password, user.password)))
+                throw "Incorrect password, correct it"
+            const message = "Successfully Login"
+            sendToken(user, status.SUCCESS, res, message)
+        }
+        catch (err) {
             return res.status(status.NOT_FOUND).json({ error: err })
         }
     }
 
-    static getUserById = async (req, res, next) => {
+    viewProfile = async (req, res, next) => {
         try {
+            let user
             const id = req.params.id;
-            let user = await User.findById(id)
+
+            if (id.length !== 24)  //
+                throw "Invalid Object Id"
+            user = await User.findById(id)
             if (!user)
                 throw "User not found"
             return res.status(status.SUCCESS).json({ user })
@@ -27,110 +69,140 @@ class UserController {
         }
     }
 
-    static addUser = async (req, res, next) => {
+    updateProfile = async (req, res, next) => {
         try {
-            const { name, email, phone, password } = req.body;
-            let user = new User({
-                name,
+            let user
+            let id = req.params.id;
+            const { firstName, lastName, email, phone, password } = req.body;
+
+            if (id.length !== 24)
+                throw "Invalid object Id"
+            user = await User.findById(id)
+
+            if (user === null)
+                throw "Unable to update this profile"
+            const hashedPassword = await bcrypt.hash(password, 10)
+            user = await User.findByIdAndUpdate(id, {
+                firstName,
+                lastName,
                 email,
                 phone,
-                password
-            });
-            if (!user) {
-                throw "Unable to add user"
-            }
-            await user.save();
-            return res.status(status.CREATED).json({ user })
-        } catch (err) {
+                password: hashedPassword
+            })
+            await user.save()
+            return res.status(status.SUCCESS).json({ message: "User update successfully" })
+        }
+        catch (err) {
             return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
         }
     }
 
-    static updateUser = async (req, res, next) => {
-        let user
+    deleteProfile = async (req, res, next) => {
         try {
-            const id = req.params.id;
-            const { name, email, phone, password } = req.body;
-            let validId = await User.findById(id)
-            if (validId) {
-                user = await User.findByIdAndUpdate(id, {
-                    name,
-                    email,
-                    phone,
-                    password
-                })
+            let user
+            let id = req.params.id
 
-                user = await user.save();
-            }
-            else throw "Unable to update by this ID"
+            if (id.length !== 24)
+                throw "Invalid object Id"
+            user = await User.findByIdAndDelete(id)
 
-            return res.status(status.SUCCESS).json({ user })
+            if (user === null)
+                throw "Id not found, Unable to delete"
+            
+            return res.status(status.SUCCESS).json({message: "User deleted sucessfully"})
         }
         catch (err) {
-            return res.status(status.NOT_FOUND).json({ error: err })
+            return res.status(status.NOT_FOUND).json({error: err})
         }
     }
 
-    static deleteUser = async (req, res, next) => {
+    getAllUser = async (req, res, next) => {
         try {
-            let user;
-            const id = req.params.id;
-            let validId = await User.findById(id)
-
-            if (validId) {
-                user = await User.findByIdAndRemove(id)
-            }
-            else throw "Unable to delete by this ID"
-
-            return res.status(status.SUCCESS).json({ message: "Product Deleted Sucessfully" })
-        }
-        catch (err) {
+            let users = await User.find();
+            if (users.length < 1)
+                throw "No users found"
+            return res.status(status.SUCCESS).json({ users })
+        } catch (err) {
             return res.status(status.NOT_FOUND).json({ error: err })
         }
     }
+    // getUserById = async (req, res, next) => {
+    //     try {
+    //         const id = req.params.id;
+    //         let user = await User.findById(id)
+    //         if (!user)
+    //             throw "User not found"
+    //         return res.status(status.SUCCESS).json({ user })
+    //     }
+    //     catch (err) {
+    //         return res.status(status.NOT_FOUND).json({ error: err })
+    //     }
+    // }
+
+    // addUser = async (req, res, next) => {
+    //     try {
+    //         const { firstName, lastName, email, phone, password, role } = req.body;
+    //         let roleId = await baseController.getRoleId(role);
+    //         console.log(roleId)
+    //         let user = new User({
+    //             firstName,
+    //             lastName,
+    //             email,
+    //             phone,
+    //             password,
+    //             roleId
+    //         });
+    //         if (!user) {
+    //             throw "Unable to add user"
+    //         }
+    //         await user.save();
+    //         return res.status(status.CREATED).json({ user })
+    //     } catch (err) {
+    //         return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
+    //     }
+    // }
+
+    // updateUser = async (req, res, next) => {
+    //     let user
+    //     try {
+    //         const id = req.params.id;
+    //         const { name, email, phone, password } = req.body;
+    //         let validId = await User.findById(id)
+    //         if (validId) {
+    //             user = await User.findByIdAndUpdate(id, {
+    //                 name,
+    //                 email,
+    //                 phone,
+    //                 password
+    //             })
+
+    //             user = await user.save();
+    //         }
+    //         else throw "Unable to update by this ID"
+
+    //         return res.status(status.SUCCESS).json({ user })
+    //     }
+    //     catch (err) {
+    //         return res.status(status.NOT_FOUND).json({ error: err })
+    //     }
+    // }
+
+    // deleteUser = async (req, res, next) => {
+    //     try {
+    //         const id = req.params.id;
+    //         let validId = await User.findById(id)
+
+    //         if (validId) {
+    //             await User.findByIdAndRemove(id)
+    //         }
+    //         else throw "Unable to delete by this ID"
+
+    //         return res.status(status.SUCCESS).json({ message: "Product Deleted Sucessfully" })
+    //     }
+    //     catch (err) {
+    //         return res.status(status.NOT_FOUND).json({ error: err })
+    //     }
+    // }
 }
 
-exports.default = UserController;
-// module.exports = UserController;
-
-// const getAllUser = async (req, res, next) => {
-//     try {
-//         let users = await User.find();
-//         if(users.length < 1)
-//         throw "No users found"
-//         return res.status(200).json({ users })
-//     } catch (err) {
-//         console.log(err)
-//         return res.status(404).json({error : err})
-//     }
-//     // if (!users) {
-//     //     return res.status(404).json({ message: "No User found" });
-//     // }   
-// }
-
-// const addUser = async (req, res, next) => {
-//     const { name, email, phone, password } = req.body;
-//     let user;
-
-//     try {
-//         user = new User({
-//             name,
-//             email,
-//             phone,
-//             password
-//         });
-//         await user.save();
-//     } catch (err) {
-//         console.log(err);
-//     }
-
-//     if (!user) {
-//         return res.status(500).json({ message: "unable to add user" })
-//     }
-//     else {
-//         return res.status(201).json({ user })
-//     }
-// }
-
-// exports.getAllUser = getAllUser;
-// exports.addUser = addUser;
+export default UserController

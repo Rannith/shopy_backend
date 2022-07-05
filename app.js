@@ -1,15 +1,27 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const router = require("./routes/user-routes").default;
+import express, { json } from 'express';
+import pkg from 'mongoose';
+const { connect } = pkg;
+import userRouter from './routes/user-routes'
+import productRouter from './routes/product-routes'
+import cartRouter from './routes/cart-routes'
+import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser'
+// import { connect } from 'mongoose';
+// import router from './routes/user-routes'
 
+dotenv.config()
 const app = express();
+app.use(cookieParser());
+app.use(json());
 
-app.use(express.json());
-app.use("/users", router);
+app.use("/users", userRouter)
+app.use("/product", productRouter)
+app.use("/cart", cartRouter)
 
-mongoose.connect("mongodb://localhost:27017/shopy")
+
+connect("mongodb://localhost:27017/shopy")
     .then(() => console.log("Connected to Database"))
     .then(() => {
-        app.listen(5000);
+        app.listen(process.env.PORT);
     })
     .catch(err => console.log(err))
