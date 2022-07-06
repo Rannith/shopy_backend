@@ -15,6 +15,11 @@ const cartSchema = new schema({
         type: pkg.Types.ObjectId,
         ref: 'product',
         required: true
+    },
+    quantity: {
+        type: Number,
+        default: 1,
+        required: false
     }
 })
 

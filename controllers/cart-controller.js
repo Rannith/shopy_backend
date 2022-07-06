@@ -1,5 +1,8 @@
-import Cart from "../model/cart";
+import Cart from '../model/cart';
+import BaseController from './base-controller'
 import * as status from '../constants/status-code'
+
+const baseController = new BaseController()
 
 class CartController {
 
@@ -17,11 +20,27 @@ class CartController {
         }
     }
 
-    // addTOCart = async (req, res, next) => {
-    //     try {
+    addToCart = async (req, res, next) => {
+        try {
+            let productId = req.params.productId
+            let userId = req.params.userId
 
-    //     }
-    // }
+            let cart = new Cart({
+                productId,
+                userId
+            })
+
+            let cartObj = await cart.save()
+            console.log("Cart obj"+cartObj);
+            
+            await baseController.addCartIdToUser(cartObj._id.toString(), userId)
+
+            return res.status(status.SUCCESS).json({message: "Product added successfully"})
+        }
+        catch (err) {
+            return res.status(status.INTERNAL_SERVER_ERROR).json({error: err})
+        }
+    }
 }
 
 export default CartController

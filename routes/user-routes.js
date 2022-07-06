@@ -15,7 +15,8 @@
 
 import { Router } from 'express';
 import userController from '../controllers/user-controller';
-import isAuthenticateUser from '../middleware/authenticate';
+import isAuthenticateUser from '../middleware/authentication';
+
 
 const router = Router();
 const user = new userController()
@@ -23,9 +24,9 @@ const user = new userController()
 router.get('/', user.getAllUser);
 router.post('/register', user.registerUser);
 router.post('/login', user.loginUser);
-router.get('/my-profile/:id', isAuthenticateUser, user.viewProfile);
-router.put('/:id', isAuthenticateUser, user.updateProfile);
-router.delete('/:id', isAuthenticateUser, user.deleteProfile);
+router.get('/my-profile/:id', isAuthenticateUser.isAuthenticateUser, user.viewProfile);
+router.put('/:id', isAuthenticateUser.isAuthenticateUser, user.updateProfile);
+router.delete('/:id', isAuthenticateUser.isAuthenticateUser, user.deleteProfile);
 
 export default router
 // // module.exports = router
