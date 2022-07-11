@@ -9,10 +9,52 @@ class ProductController {
 
     viewProducts = async (req, res, next) => {
         try {
-            let products = await Product.find();
-            if (products.length <= 0)
-                throw "No Products available"
-            return res.status(status.SUCCESS).json({ products })
+            const category = req.query.category;
+
+            console.log("Category : ", category)
+
+            if (!category) {
+                let products = await Product.find();
+                if (products.length <= 0)
+                    throw "No Products available"
+                return res.status(status.SUCCESS).json({ products })
+            }
+            else {
+                const products = await baseController.getCategorizedProduct(category);
+                if (!products) {
+                    throw "No products available at given category"
+                }
+                return res.status(status.SUCCESS).json({ products })
+            }
+        }
+        catch (err) {
+            return res.status(status.NOT_FOUND).json({ error: err })
+        }
+    }
+
+    viewNewProduct = async (req, res) => {
+        try {
+            const type = req.query.productType;
+            console.log("Product type : ", type);
+
+            if (type === "popular_product") {
+                const products = await baseController.getPopularProductType(type)
+                console.log("Product : ", products)
+                if (products.length < 1) {
+                    throw "No products available at given category"
+                }
+
+                return res.status(status.SUCCESS).json({ products })
+            } 
+            else {
+                const products = await baseController.getPopularProductType(type)
+                console.log("Product : ", products.length)
+                if (products.length <= 0) {
+                    throw "No products available at given category"
+                }
+
+                return res.status(status.SUCCESS).json({ products })
+            }
         }
         catch (err) {
             return res.status(status.NOT_FOUND).json({ error: err })
@@ -22,9 +64,10 @@ class ProductController {
     viewProduct = async (req, res, next) => {
         try {
             let productId = req.params.id;
+            console.log("IN VIEW PRODUCT")
             if (productId.length !== 24)
                 throw "Invalid Object Id"
-            let product = await Product.findById(id)
+            let product = await Product.findById(productId)
             if (!product)
                 throw "No product found with that id mentioned"
             return res.status(status.SUCCESS).json({ product })
@@ -36,7 +79,10 @@ class ProductController {
 
     addProduct = async (req, res, next) => {
         try {
-            const { productName, productImageUrl, oldPrice, newPrice, productCategory, productType } = req.body; 
+            const { productName, productImageUrl, oldPrice, newPrice, productCategory, productType } = req.body;
+
+            console.log("Product Category : ", productCategory)
+            console.log("Product Type : ", productType)
 
             if (await Product.findOne({ productName: productName }))
                 throw "This product has already been added"
@@ -66,11 +112,11 @@ class ProductController {
             const { productName, productImageUrl, oldPrice, newPrice } = req.body;
             let productId = req.params.id;
 
-            if(productId.length !== 24) 
-            throw "Invalid Object Id"
+            if (productId.length !== 24)
+                throw "Invalid Object Id"
 
-            if(! await Product.findById(productId))
-            throw "No Product Available With this Given Product Id"
+            if (! await Product.findById(productId))
+                throw "No Product Available With this Given Product Id"
 
             let product = await Product.findByIdAndUpdate(productId, {
                 productName,
@@ -81,10 +127,10 @@ class ProductController {
 
             await product.save()
 
-            return res.status(status.SUCCESS).json({message: "Product Updated Successfully"})
+            return res.status(status.SUCCESS).json({ message: "Product Updated Successfully" })
         }
         catch (err) {
-            return res.status(status.INTERNAL_SERVER_ERROR).json({error: err})
+            return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
         }
     }
 
@@ -92,16 +138,16 @@ class ProductController {
         try {
             let productId = req.params.id;
 
-            if(productId.length !== 24)
-            throw "Invalid Object Id"
+            if (productId.length !== 24)
+                throw "Invalid Object Id"
             let product = await Product.findByIdAndDelete(productId);
-            if(!product)
-            throw "Unable to Delete this Id"
+            if (!product)
+                throw "Unable to Delete this Id"
 
-            return res.status(status.SUCCESS).json({message: "Product Deleted Successfully"})
+            return res.status(status.SUCCESS).json({ message: "Product Deleted Successfully" })
         }
         catch (err) {
-            return res.status(status.INTERNAL_SERVER_ERROR).json({error: err})
+            return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
         }
     }
 }

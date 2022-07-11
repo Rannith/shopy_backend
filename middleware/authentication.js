@@ -29,9 +29,9 @@ const isAuthenticateAdmin = async (req, res, next) => {
     const { adminToken } = req.cookies
     try{
         if (!adminToken) 
-        throw "You dont have access to this page , please login as admin"
+            throw "You dont have access to this page , please login as admin"
         const decodedData = jwt.verify(adminToken, process.env.SECRET_KEY)
-        req.user = await Admin.findById(decodedData.id)
+        req.user = await User.findById(decodedData.id)
         console.log("verified")
         next()
     }

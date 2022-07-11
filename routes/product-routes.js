@@ -6,6 +6,7 @@ import isAuthenticateUser from "../middleware/authentication";
 const product = new productController();
 
 router.get('/', product.viewProducts)
+router.get('/view', product.viewNewProduct)
 router.get('/:id', product.viewProduct )
 router.post('/', product.addProduct)
 router.put('/:id', product.updateProduct)

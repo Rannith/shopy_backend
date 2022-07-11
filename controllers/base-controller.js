@@ -1,5 +1,6 @@
 import Role from '../model/role'
 import User from '../model/user'
+import Product from '../model/product'
 import ProductCategory from '../model/product-category'
 import ProductType from '../model/product-type'
 import * as status from '../constants/status-code'
@@ -10,67 +11,84 @@ class BaseController {
         try {
             console.log("in base class")
             let role = await Role.findOne({ roleType: value })
-            console.log("base role:"+role)
+            console.log("base role:" + role)
             if (!role)
-                throw "Role Not Available" 
+                throw "Role Not Available"
             return role._id.toString()
         }
         catch (err) {
-            return res.status(status.SUCCESS).json({message: "Sucessfully created"})
+            return res.status(status.N).json({ message: "Sucessfully created" }) //Need to change
         }
     }
 
     getProductCategoryId = async (value, res) => {
         try {
-            let productCategory = await ProductCategory.findOne({productCategory: value})
-            if(!productCategory)
-            throw "Product Category Not Available"
+            console.log("VALUE : ", value)
+            let productCategory = await ProductCategory.findOne({ productCategory: value })
+            console.log("PRoduct Category : ", productCategory)
+            if (!productCategory)
+                throw "Product Category Not Available"
             return productCategory._id.toString()
         }
         catch (err) {
-            return res.status(status.SUCCESS).json({error: err})
+            return res.status(status.SUCCESS).json({ error: err })
         }
     }
 
     getProductTypeId = async (value, res) => {
         try {
-            let productType = await ProductType.findOne({productType: value})
-            if(!productType)
-            throw "Product Type Not Available"
+            let productType = await ProductType.findOne({ productType: value })
+            if (!productType)
+                throw "Product Type Not Available"
             return productType._id.toString()
         }
         catch (err) {
-            return res.status(status.NOT_FOUND).json({error: err})
+            return res.status(status.NOT_FOUND).json({ error: err })
         }
     }
 
     addCartIdToUser = async (cartsId, userId) => {
         try {
-            let cartArray = []
-
-            let user = await User.findOne({_id: userId})
-            console.log("User : "+user)
-            await user.updateOne({$push : {cartId : cartsId}})
+            let user = await User.findOne({ _id: userId })
+            console.log("User : " + user)
+            await user.updateOne({ $push: { cartId: cartsId } })
             // console.log("user : ", user);
             // user.cartId.forEach(element => {
             //     // console.log("element"+ element);
             //     cartArray.push[element]
             // });
-            
+
             // cartArray.push(cartId);
             // console.log("user : ",user)
             // console.log("cart id : ",cartsId)
             // console.log("userId : ",userId)
             // const check = await User.findOneAndUpdate({_id: userId},{$push : {cartId : cartsId}})
-            console.log("Cart added successfully : ")
-            
-            if(!user)
-            throw "Unable to Add Cart"
+            console.log("Cart added successfully  to User")
+
+            if (!user)
+                throw "Unable to Add Cart"
             return user
         }
         catch (err) {
-            return res.status(status.INTERNAL_SERVER_ERROR).json({error: err})
+            return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
         }
+    }
+
+    // addQuantity = async () => {
+
+    // }
+
+    getCategorizedProduct = async (category) => {
+        let productCategory = await ProductCategory.findOne({ productCategory: category });
+        let products = await Product.find({ productCategoryId: productCategory._id })
+
+        return products;
+    }
+
+    getPopularProductType = async (type) => {
+        let popularProduct = await ProductType.findOne({ productType: type })
+        let products = await Product.find({productTypeId: popularProduct._id})
+        return products;
     }
 
 }
