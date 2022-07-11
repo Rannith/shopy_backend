@@ -17,7 +17,7 @@ class BaseController {
             return role._id.toString()
         }
         catch (err) {
-            return res.status(status.N).json({ message: "Sucessfully created" }) //Need to change
+            return res.status(status.NOT_FOUND).json({ message: "Sucessfully created" }) //Need to change
         }
     }
 
