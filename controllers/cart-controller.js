@@ -1,6 +1,7 @@
 import Cart from '../model/cart';
 import BaseController from './base-controller'
 import * as status from '../constants/status-code'
+import User from '../model/user';
 
 const baseController = new BaseController()
 
@@ -40,11 +41,10 @@ class CartController {
             let userId = req.params.userId
 
             if (await Cart.findOne({ productId: productId, userId: userId })) {
-                console.log("in Duplicate product in same cart")
-                console.log("CHECK : " + userId);
+                let cart = await Cart.findOne({ productId: productId, userId: userId })
                 await Cart.updateOne({ userId: userId, productId: productId }, { $inc: { quantity: 1 } })
 
-                return res.status(status.SUCCESS).json({ message: "Cart Updated Successfully" })
+                return res.status(status.SUCCESS).json({ message: `Product Added Quantity:(${cart.quantity})` })
             }
             else {
                 let cart = new Cart({
@@ -65,21 +65,21 @@ class CartController {
         }
     }
 
-    updateQuantity = async (res, req, next) => {
+    updateQuantity = async (req, res, next) => {
         try {
-            let productId = req.params.productId
-            let userId = req.params.userId
+            const { productId, userId } = req.params
 
-            console.log("UP QTY PROID : ", req)
-            console.log("UP QTY userId : ", req.baseUrl)
+            let cart = await Cart.findOne({ productId: productId, userId: userId })
+            let val
+            if (!cart.quantity > 1)
+                throw "Unable to reduce quantity"
 
-            const quantity = await Cart.findOne({ productId: productId, userId: userId })
-            console.log("IN UP QTY : ", quantity)
+            await Cart.updateOne({ productId: productId, userId: userId }, { $inc: { quantity: -1 } })
 
-            return res.status(status.SUCCESS).json({message: "Cart Updated Successfully"})
+            return res.status(status.SUCCESS).json({ message: "Cart Updated Successfully" })
         }
         catch (err) {
-            console.log("ERROR : ", err)
+            return res.status(status.INTERNAL_SERVER_ERROR).json({error: err    })
         }
     }
 
@@ -91,6 +91,7 @@ class CartController {
             if (cartId.length !== 24)
                 throw "Invalid Object Id"
             let cart = await Cart.findByIdAndDelete(cartId)
+            await User.updateOne({ cartId: cartId })
             if (!cart)
                 throw "Unable to delete cart"
 

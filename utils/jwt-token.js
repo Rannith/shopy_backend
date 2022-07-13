@@ -9,7 +9,7 @@ const sendToken = (user, statusCode, res, message) => {
     };
 
     return res.status(statusCode).cookie("token", token, options).json({
-        success: message,
+        message: message,
         user,
         token,
     })

@@ -6,7 +6,7 @@ import BaseController from './base-controller';
 import bcrypt from 'bcrypt'
 import sendToken from '../utils/jwt-token';
 
-const baseController = new BaseController() // change to abstract cls
+const baseController = new BaseController()
 
 class UserController {
 
@@ -38,10 +38,15 @@ class UserController {
 
     loginUser = async (req, res, next) => {
         try {
-            const { email, password } = req.body;
+            const { email, password, role } = req.body;
+            let roleId = await baseController.getRoleId(role, res);
+            console.log("Role Login : ", roleId)
             let user = await User.findOne({ email: email })
-            if (user === null)                               // chg to !user
+            if (!user)
                 throw "No account exist with this mail id"
+            console.log("Valid role : ", user.roleId.toString());
+            if (user.roleId.toString() !== roleId)
+                throw `This mail Id not in ${role}'s role`
             if (!(bcrypt.compareSync(password, user.password)))
                 throw "Incorrect password, correct it"
             const message = "Successfully Login"
@@ -108,11 +113,11 @@ class UserController {
 
             if (user === null)
                 throw "Id not found, Unable to delete"
-            
-            return res.status(status.SUCCESS).json({message: "User deleted sucessfully"})
+
+            return res.status(status.SUCCESS).json({ message: "User deleted sucessfully" })
         }
         catch (err) {
-            return res.status(status.NOT_FOUND).json({error: err})
+            return res.status(status.NOT_FOUND).json({ error: err })
         }
     }
 
