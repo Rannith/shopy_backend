@@ -24,7 +24,7 @@ const user = new userController()
 router.get('/', user.getAllUser);
 router.post('/register', user.registerUser);
 router.post('/login', user.loginUser);
-router.get('/my-profile/:id', isAuthenticateUser, user.viewProfile);
+router.get('/my-profile/:id',  user.viewProfile);
 router.put('/:id',isAuthenticateUser, user.updateProfile);
 router.delete('/:id',isAuthenticateUser, user.deleteProfile);
 

@@ -64,7 +64,9 @@ class UserController {
 
             if (id.length !== 24)  //
                 throw "Invalid Object Id"
-            user = await User.findById(id)
+            user = await User.findById(id).populate({path: 'roleId'})
+            // let roleType = await user.populate({path: 'roleId'})
+            console.log("This is I Need : ", user.roleId.roleType)
             if (!user)
                 throw "User not found"
             return res.status(status.SUCCESS).json({ user })

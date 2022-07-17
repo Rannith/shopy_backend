@@ -1,6 +1,7 @@
 import Product from '../model/product'
 import * as status from '../constants/status-code'
 import BaseController from './base-controller'
+import ProductCategory from '../model/product-category'
 
 
 const baseController = new BaseController()
@@ -45,7 +46,7 @@ class ProductController {
                 }
 
                 return res.status(status.SUCCESS).json({ products })
-            } 
+            }
             else {
                 const products = await baseController.getPopularProductType(type)
                 console.log("Product : ", products.length)
@@ -148,6 +149,20 @@ class ProductController {
         }
         catch (err) {
             return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
+        }
+    }
+
+    getProductCategory = async (req, res) => {
+        try {
+            let productCategory = await ProductCategory.find()
+
+            if (!productCategory)
+                throw "No Product category available"
+
+            return res.status(status.SUCCESS).json({ productCategory })
+        }
+        catch (err) {
+            return res.status(status.NOT_FOUND).json({ error: err })
         }
     }
 }

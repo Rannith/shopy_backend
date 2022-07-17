@@ -44,7 +44,7 @@ class CartController {
                 let cart = await Cart.findOne({ productId: productId, userId: userId })
                 await Cart.updateOne({ userId: userId, productId: productId }, { $inc: { quantity: 1 } })
 
-                return res.status(status.SUCCESS).json({ message: `Product Added Quantity:(${cart.quantity})` })
+                return res.status(status.SUCCESS).json({ message: `Product Added Quantity:(${cart.quantity+1})` })
             }
             else {
                 let cart = new Cart({
