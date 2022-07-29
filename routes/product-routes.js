@@ -8,7 +8,7 @@ const product = new productController();
 router.get('/', product.viewProducts)
 router.get('/view', product.viewNewProduct)
 router.get('/product-category', product.getProductCategory)
-router.get('/:id', product.viewProduct )
+router.get('/:id', product.viewProduct)
 router.post('/', product.addProduct)
 router.put('/:id', product.updateProduct)
 router.delete('/:id', product.deleteProduct)

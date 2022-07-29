@@ -9,9 +9,8 @@ class BaseController {
 
     getRoleId = async (value, res) => {
         try {
-            console.log("in base class")
             let role = await Role.findOne({ roleType: value })
-            console.log("base role:" + role)
+            
             if (!role)
                 throw "Role Not Available"
             return role._id.toString()
@@ -23,9 +22,9 @@ class BaseController {
 
     getProductCategoryId = async (value, res) => {
         try {
-            console.log("VALUE : ", value)
+            
             let productCategory = await ProductCategory.findOne({ productCategory: value })
-            console.log("PRoduct Category : ", productCategory)
+            
             if (!productCategory)
                 throw "Product Category Not Available"
             return productCategory._id.toString()
@@ -50,20 +49,9 @@ class BaseController {
     addCartIdToUser = async (cartsId, userId) => {
         try {
             let user = await User.findOne({ _id: userId })
-            console.log("User : " + user)
+    
             await user.updateOne({ $push: { cartId: cartsId } })
-            // console.log("user : ", user);
-            // user.cartId.forEach(element => {
-            //     // console.log("element"+ element);
-            //     cartArray.push[element]
-            // });
-
-            // cartArray.push(cartId);
-            // console.log("user : ",user)
-            // console.log("cart id : ",cartsId)
-            // console.log("userId : ",userId)
-            // const check = await User.findOneAndUpdate({_id: userId},{$push : {cartId : cartsId}})
-            console.log("Cart added successfully  to User")
+            
 
             if (!user)
                 throw "Unable to Add Cart"
@@ -73,10 +61,6 @@ class BaseController {
             return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
         }
     }
-
-    // addQuantity = async () => {
-
-    // }
 
     getCategorizedProduct = async (category) => {
         let productCategory = await ProductCategory.findOne({ productCategory: category });

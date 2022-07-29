@@ -1,5 +1,4 @@
-// const User = require('../model/user');
-// const status = require('../constants/status-code')
+
 import User from '../model/user';
 import * as status from '../constants/status-code'
 import BaseController from './base-controller';
@@ -17,7 +16,6 @@ class UserController {
                 throw "This mail id has already been registered"
             }
             const hashedPassword = await bcrypt.hash(password, 10)
-            console.log(hashedPassword);
             let roleId = await baseController.getRoleId(role, res);
             let user = new User({
                 firstName,
@@ -29,7 +27,7 @@ class UserController {
             });
             await user.save();
             const message = "User Registered Successfully"
-            sendToken(user, status.CREATED, res, message)
+            // sendToken(user, status.CREATED, res, message)
         }
         catch (err) {
             return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
@@ -40,16 +38,15 @@ class UserController {
         try {
             const { email, password, role } = req.body;
             let roleId = await baseController.getRoleId(role, res);
-            console.log("Role Login : ", roleId)
             let user = await User.findOne({ email: email })
+
             if (!user)
                 throw "No account exist with this mail id"
-            console.log("Valid role : ", user.roleId.toString());
             if (user.roleId.toString() !== roleId)
                 throw `This mail Id not in ${role}'s role`
             if (!(bcrypt.compareSync(password, user.password)))
                 throw "Incorrect password, correct it"
-            const message = "Successfully Login"
+            const message = "Successfully Logged in"
             sendToken(user, status.SUCCESS, res, message)
         }
         catch (err) {
@@ -64,9 +61,7 @@ class UserController {
 
             if (id.length !== 24)  //
                 throw "Invalid Object Id"
-            user = await User.findById(id).populate({path: 'roleId'})
-            // let roleType = await user.populate({path: 'roleId'})
-            console.log("This is I Need : ", user.roleId.roleType)
+            user = await User.findById(id).populate({ path: 'roleId' })
             if (!user)
                 throw "User not found"
             return res.status(status.SUCCESS).json({ user })
@@ -80,7 +75,7 @@ class UserController {
         try {
             let user
             let id = req.params.id;
-            const { firstName, lastName, email, phone, password } = req.body;
+            const { firstName, lastName, email, phone } = req.body;
 
             if (id.length !== 24)
                 throw "Invalid object Id"
@@ -88,13 +83,12 @@ class UserController {
 
             if (user === null)
                 throw "Unable to update this profile"
-            const hashedPassword = await bcrypt.hash(password, 10)
+
             user = await User.findByIdAndUpdate(id, {
                 firstName,
                 lastName,
                 email,
-                phone,
-                password: hashedPassword
+                phone
             })
             await user.save()
             return res.status(status.SUCCESS).json({ message: "User update successfully" })
@@ -133,83 +127,6 @@ class UserController {
             return res.status(status.NOT_FOUND).json({ error: err })
         }
     }
-    // getUserById = async (req, res, next) => {
-    //     try {
-    //         const id = req.params.id;
-    //         let user = await User.findById(id)
-    //         if (!user)
-    //             throw "User not found"
-    //         return res.status(status.SUCCESS).json({ user })
-    //     }
-    //     catch (err) {
-    //         return res.status(status.NOT_FOUND).json({ error: err })
-    //     }
-    // }
-
-    // addUser = async (req, res, next) => {
-    //     try {
-    //         const { firstName, lastName, email, phone, password, role } = req.body;
-    //         let roleId = await baseController.getRoleId(role);
-    //         console.log(roleId)
-    //         let user = new User({
-    //             firstName,
-    //             lastName,
-    //             email,
-    //             phone,
-    //             password,
-    //             roleId
-    //         });
-    //         if (!user) {
-    //             throw "Unable to add user"
-    //         }
-    //         await user.save();
-    //         return res.status(status.CREATED).json({ user })
-    //     } catch (err) {
-    //         return res.status(status.INTERNAL_SERVER_ERROR).json({ error: err })
-    //     }
-    // }
-
-    // updateUser = async (req, res, next) => {
-    //     let user
-    //     try {
-    //         const id = req.params.id;
-    //         const { name, email, phone, password } = req.body;
-    //         let validId = await User.findById(id)
-    //         if (validId) {
-    //             user = await User.findByIdAndUpdate(id, {
-    //                 name,
-    //                 email,
-    //                 phone,
-    //                 password
-    //             })
-
-    //             user = await user.save();
-    //         }
-    //         else throw "Unable to update by this ID"
-
-    //         return res.status(status.SUCCESS).json({ user })
-    //     }
-    //     catch (err) {
-    //         return res.status(status.NOT_FOUND).json({ error: err })
-    //     }
-    // }
-
-    // deleteUser = async (req, res, next) => {
-    //     try {
-    //         const id = req.params.id;
-    //         let validId = await User.findById(id)
-
-    //         if (validId) {
-    //             await User.findByIdAndRemove(id)
-    //         }
-    //         else throw "Unable to delete by this ID"
-
-    //         return res.status(status.SUCCESS).json({ message: "Product Deleted Sucessfully" })
-    //     }
-    //     catch (err) {
-    //         return res.status(status.NOT_FOUND).json({ error: err })
-    //     }
-    // }
 }
 
 export default UserController

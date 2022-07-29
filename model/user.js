@@ -1,4 +1,3 @@
-// import { Schema, model } from 'mongoose';
 import pkg from 'mongoose';
 const { Schema, model } = pkg;
 import jwt from 'jsonwebtoken'

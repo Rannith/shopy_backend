@@ -7,8 +7,6 @@ import cartRouter from './routes/cart-routes'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-// import { connect } from 'mongoose';
-// import router from './routes/user-routes'
 
 dotenv.config()
 const app = express()

@@ -26,7 +26,6 @@ class CartController {
             let userId = req.params.userId
 
             let userCart = await Cart.find({ userId: userId }).populate({ path: 'productId' });
-            // await userCart.forEach(element => console.log(element.productId))
 
             return res.status(status.SUCCESS).json({ userCart })
         }
@@ -53,7 +52,6 @@ class CartController {
                 })
 
                 let cartObj = await cart.save()
-                console.log("Cart obj" + cartObj);
 
                 await baseController.addCartIdToUser(cartObj._id.toString(), userId)
 
@@ -85,13 +83,13 @@ class CartController {
 
     removeFromCart = async (req, res) => {
         try {
-            console.log("IN Remove cart");
             let cartId = req.params.id;
 
             if (cartId.length !== 24)
                 throw "Invalid Object Id"
+            let user = await Cart.findById(cartId)
             let cart = await Cart.findByIdAndDelete(cartId)
-            await User.updateOne({ cartId: cartId })
+            await User.updateOne({_id: user.userId},{$pull: {cartId: cartId} })
             if (!cart)
                 throw "Unable to delete cart"
 

@@ -12,8 +12,6 @@ class ProductController {
         try {
             const category = req.query.category;
 
-            console.log("Category : ", category)
-
             if (!category) {
                 let products = await Product.find();
                 if (products.length <= 0)
@@ -36,11 +34,9 @@ class ProductController {
     viewNewProduct = async (req, res) => {
         try {
             const type = req.query.productType;
-            console.log("Product type : ", type);
 
             if (type === "popular_product") {
                 const products = await baseController.getPopularProductType(type)
-                console.log("Product : ", products)
                 if (products.length < 1) {
                     throw "No products available at given category"
                 }
@@ -49,7 +45,6 @@ class ProductController {
             }
             else {
                 const products = await baseController.getPopularProductType(type)
-                console.log("Product : ", products.length)
                 if (products.length <= 0) {
                     throw "No products available at given category"
                 }
@@ -65,12 +60,14 @@ class ProductController {
     viewProduct = async (req, res, next) => {
         try {
             let productId = req.params.id;
-            console.log("IN VIEW PRODUCT")
+            
             if (productId.length !== 24)
                 throw "Invalid Object Id"
             let product = await Product.findById(productId)
             if (!product)
                 throw "No product found with that id mentioned"
+
+            
             return res.status(status.SUCCESS).json({ product })
         }
         catch (err) {
@@ -81,9 +78,6 @@ class ProductController {
     addProduct = async (req, res, next) => {
         try {
             const { productName, productImageUrl, oldPrice, newPrice, productCategory, productType } = req.body;
-
-            console.log("Product Category : ", productCategory)
-            console.log("Product Type : ", productType)
 
             if (await Product.findOne({ productName: productName }))
                 throw "This product has already been added"
